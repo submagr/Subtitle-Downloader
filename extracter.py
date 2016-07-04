@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from bs4 import BeautifulSoup
 import requests
 from StringIO import StringIO
@@ -17,7 +18,7 @@ response = requests.get(base_url+'subtitles/release?q='+movie)
 soup = BeautifulSoup(response.content)
 myTable = soup.table
 rows = myTable.tbody.findAll('tr')
-# Take Language as input or global parameter set by user
+
 LANGUAGE = 'english'
 possible_urls = {}  
 
@@ -44,3 +45,4 @@ subZipFile = StringIO(response.content)
 ZipFile(subZipFile).extractall()
 print 'Subtitle file : ', url, 'downloaded and extracted'  
 #TODO : Download all in a directory
+
