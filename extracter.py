@@ -9,40 +9,44 @@ import os
 from fuzzywuzzy import process
 from pprint import pprint
 
-# Get Movie Name
-movie = sys.argv[1]
-movie = os.path.splitext(movie)[0]
+def main(args):
+    # Get Movie Name
+    movie = args[0]
+    print movie
+    movie = os.path.splitext(movie)[0]
 
-base_url = 'https://subscene.com/'
-response = requests.get(base_url+'subtitles/release?q='+movie)
-soup = BeautifulSoup(response.content)
-myTable = soup.table
-rows = myTable.tbody.findAll('tr')
+    base_url = 'https://subscene.com/'
+    response = requests.get(base_url+'subtitles/release?q='+movie)
+    soup = BeautifulSoup(response.content)
+    myTable = soup.table
+    rows = myTable.tbody.findAll('tr')
 
-LANGUAGE = 'english'
-possible_urls = {}  
+    LANGUAGE = 'english'
+    possible_urls = {}  
 
-for row in rows : 
-    lan = row.find('span', {'class':'l r neutral-icon'})
-    if lan == None : 
-        continue
-    if lan.stripped_strings.next().lower() == LANGUAGE :
-        name = row.findAll('span')[1].string.rstrip().lstrip()
-        sub_url = row.a['href'] 
-        possible_urls[name] =  sub_url
+    for row in rows : 
+        lan = row.find('span', {'class':'l r neutral-icon'})
+        if lan == None : 
+            continue
+        if lan.stripped_strings.next().lower() == LANGUAGE :
+            name = row.findAll('span')[1].string.rstrip().lstrip()
+            sub_url = row.a['href'] 
+            possible_urls[name] =  sub_url
 
-print 'List of available options : '
-pprint([url for url in possible_urls])
-url = process.extractOne(movie, [url for url in possible_urls])[0]
-subtitle_url = possible_urls[url]
-response = requests.get(base_url + subtitle_url)
-soup = BeautifulSoup(response.content)
-mydiv = soup.find('div', {'class':'download'})
-download_url = base_url + mydiv.a['href']
-response = requests.get(download_url)
-# Extract Zip File 
-subZipFile = StringIO(response.content)
-ZipFile(subZipFile).extractall()
-print 'Subtitle file : ', url, 'downloaded and extracted'  
-#TODO : Download all in a directory
+    print 'List of available options : '
+    pprint([url for url in possible_urls])
+    url = process.extractOne(movie, [url for url in possible_urls])[0]
+    subtitle_url = possible_urls[url]
+    response = requests.get(base_url + subtitle_url)
+    soup = BeautifulSoup(response.content)
+    mydiv = soup.find('div', {'class':'download'})
+    download_url = base_url + mydiv.a['href']
+    response = requests.get(download_url)
+    # Extract Zip File 
+    subZipFile = StringIO(response.content)
+    ZipFile(subZipFile).extractall()
+    print 'Subtitle file : ', url, 'downloaded and extracted'  
+    #TODO : Download all in a directory
 
+if __name__ == '__main__':
+    main(sys.argv[1:])
